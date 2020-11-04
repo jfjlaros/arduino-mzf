@@ -1,7 +1,7 @@
 #include "physical.h"
 
 // Defenitions.
-#define READP 0x378
+#define READP LED_BUILTIN
 
 #define KEYBOARD 0x60 // The keyboard I/O port.
 #define KCONTROL 0x64 // The keyboard/mouse control port.
@@ -13,8 +13,8 @@
 #define MOTOR_ON  0x80 // 10000000 Pin 7 on the parport.
 
 // Global variables.
-byte ZERO = PHYS_ZERO | MOTOR_ON,
-     ONE = PHYS_ONE | MOTOR_ON;
+byte ZERO = LOW,
+     ONE = HIGH;
 int LONG_UP = 0,    // These variables define the long wave.
     LONG_DOWN = 0,
     SHORT_UP = 0,   // These variables define the short wave.
@@ -24,27 +24,25 @@ int LONG_UP = 0,    // These variables define the long wave.
 
 // Private function prototypes.
 void lp(void), // Long pulse.
-     sp(void); // Short pulse.
-       
+     sp(void), // Short pulse.
+     outb(byte, byte);
+
+void outb(byte value, byte pin, int length) {
+  digitalWrite(pin, value);
+  delay(length);
+}
+
 // Private functions.
 // Write a long pulse.
 void lp(void) {
-  int j = 0;
-
-  for (j = 0; j < LONG_UP; j++)
-    outb(ZERO, READP);
-  for (j = 0; j < LONG_DOWN; j++)
-    outb(ONE, READP);
+  outb(ZERO, READP, LONG_UP);
+  outb(ONE, READP, LONG_DOWN);
 }//lp
 
 // Write a short pulse.
 void sp(void) {
-  int j = 0;
-
-  for (j = 0; j < SHORT_UP; j++)
-    outb(ZERO, READP);
-  for (j = 0; j < SHORT_DOWN; j++)
-    outb(ONE, READP);
+  outb(ZERO, READP, SHORT_UP);
+  outb(ONE, READP, SHORT_DOWN);
 }//lp
 
 // Public functions.
@@ -155,8 +153,8 @@ word getfilesize(byte *image) {
 
 // Read the ESC key status.
 int esc(void) {
-  if (!((inb(KEYBOARD) != ESCAPE) || (inb(KCONTROL) != KEVENT)))
-    return 1;
+  //if (!((inb(KEYBOARD) != ESCAPE) || (inb(KCONTROL) != KEVENT)))
+  //  return 1;
   return 0;
 }//esc
 
